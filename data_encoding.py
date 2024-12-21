@@ -1,11 +1,13 @@
 # Selects error correction level. Returns: L-7%, M-15%, Q-25%, H-30%
 def error_correction_level(text: str) -> str:
-    return 'Q'
+    return 'M'
 
 
 # Determine smallest version neccessary for the data
 from information import SMALLEST_VERSION
-def smallest_version(textLength: int, encodingMode: int, errorCorrectionLevel: str) -> int:
+def smallest_version(text: str, encodingMode: int, errorCorrectionLevel: str) -> int:
+    textLength = len(text)
+    
     checkArray = SMALLEST_VERSION[encodingMode][errorCorrectionLevel]
 
     for i in range(len(checkArray)):
@@ -101,9 +103,24 @@ def encode_text(text: str, textLength: int, encodingMode: int) -> str:
         return encode_kanji_mode(text, textLength)
     return ""
 
+
+from typing import List
+# Converts encoded string to list of 8 bit elements
+def encoded_to_list(encoded: str) -> List[str]:
+    encodedList = []
+    idx = 0
+    while idx < len(encoded):
+        encodedList.append(encoded[idx:idx+8])
+        idx += 8
+    return encodedList
+
+
 from information import ERROR_CORRECTION
 from information import PAD_BYTES
-def data_encoding(text: str, textLength: int, encodingMode: int, errorCorrectionLevel: str, version: int) -> str:
+# Generate actual encoded data
+def data_encoding(text: str, encodingMode: int, errorCorrectionLevel: str, version: int) -> List[str]:
+    textLength = len(text)
+    
     totalBits = 8*ERROR_CORRECTION[version-1][errorCorrectionLevel][0]
 
     modeIndicator = mode_indicator(encodingMode)
@@ -121,7 +138,9 @@ def data_encoding(text: str, textLength: int, encodingMode: int, errorCorrection
         encoded += PAD_BYTES[switch]
         switch = not switch
     
-    return encoded
+    encodedList = encoded_to_list(encoded)
+
+    return encodedList
 
 
 from data_analysis import encoding_mode
@@ -129,10 +148,10 @@ if __name__ == "__main__":
     # n = int(input())
     # for i in range(n):
         text = input()
-        textLength = len(text)
         encodingMode = encoding_mode(text)
         errorCorrectionLevel = error_correction_level(text)
-        version = smallest_version(textLength, encodingMode, errorCorrectionLevel)
-        print(data_encoding(text, textLength, encodingMode, errorCorrectionLevel, version))
+        version = smallest_version(text, encodingMode, errorCorrectionLevel)
+        
+        print(data_encoding(text, encodingMode, errorCorrectionLevel, version))
 
 
