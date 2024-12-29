@@ -1,17 +1,6 @@
 from typing import List
 
 
-# Determines size (side length) of QR code from version
-def size(version: int) -> int:
-    return (4*(version-1)+21)
-
-
-# Generates empty matrix of given size
-def empty_matrix(size: int) -> List[List[int]]:
-    m = [[-1 for j in range(size)] for i in range(size)]
-    return m
-
-
 # Go through border and change
 def border(matrix: List[List[int]], size: int, topLeftX: int, topLeftY: int, newVal: int, borderSize: int) -> List[List[int]]:
     for i in range(borderSize):
@@ -28,7 +17,7 @@ FINDER_OUTER = 7
 FINDER_MIDDLE = 5
 FINDER_INNER1 = 3
 FINDER_INNER2 = 1
-def finder_pattern(matrix: List[List[int]], topLeftX: int, topLeftY: int) -> List[List[int]]:
+def finder_pattern(matrix: List[List[int]], size: int, topLeftX: int, topLeftY: int) -> List[List[int]]:
     matrix = border(matrix, size, topLeftX, topLeftY, 1, FINDER_OUTER)
     matrix = border(matrix, size, topLeftX+(FINDER_OUTER-FINDER_MIDDLE)//2, topLeftY+(FINDER_OUTER-FINDER_MIDDLE)//2, 0, FINDER_MIDDLE)
     matrix = border(matrix, size, topLeftX+(FINDER_OUTER-FINDER_INNER1)//2, topLeftY+(FINDER_OUTER-FINDER_INNER1)//2, 1, FINDER_INNER1)
@@ -38,9 +27,9 @@ def finder_pattern(matrix: List[List[int]], topLeftX: int, topLeftY: int) -> Lis
 
 # Add finder patterns
 def finder_patterns(matrix: List[List[int]], size: int) -> List[List[int]]:
-    matrix = finder_pattern(matrix, 0, 0)                   # Top Left. (0,0)
-    matrix = finder_pattern(matrix, size-FINDER_OUTER, 0)   # Top Right. (size-FINDER_OUTER,0)
-    matrix = finder_pattern(matrix, 0, size-FINDER_OUTER)   # Bottom Left. (0,size-FINDER_OUTER)
+    matrix = finder_pattern(matrix, size, 0, 0)                   # Top Left. (0,0)
+    matrix = finder_pattern(matrix, size, size-FINDER_OUTER, 0)   # Top Right. (size-FINDER_OUTER,0)
+    matrix = finder_pattern(matrix, size, 0, size-FINDER_OUTER)   # Bottom Left. (0,size-FINDER_OUTER)
     return matrix
 
 
@@ -98,10 +87,14 @@ def dark_pixel(matrix: List[List[int]], version: int) -> List[List[int]]:
 # Add format information area, denote by 2
 def format_information_area(matrix: List[List[int]], size: int) -> List[List[int]]:
     for x in range(SEPARATOR):
+        if x == 6:
+            continue
         matrix[SEPARATOR-1][x] = 2
     for x in range(size-SEPARATOR+1, size):
         matrix[SEPARATOR-1][x] = 2
     for y in range(SEPARATOR):
+        if y == 6:
+            continue
         matrix[y][SEPARATOR-1] = 2
     for y in range(size-SEPARATOR+2, size):
         matrix[y][SEPARATOR-1] = 2
@@ -119,4 +112,119 @@ def version_information_area(matrix: List[List[int]], version: int, size: int) -
         for x in range(FINDER_OUTER-1):
             matrix[y][x] = 3
     return matrix
+
+
+# Format information string
+def format_string(errorCorrectionLevel: str, mask: int) -> str:
+    string = ERROR_CORRECTION_BITS[errorCorrectionLevel] + bin(mask)[2:].zfill(3)
+
+    message = [int(x) for x in (string[::-1].zfill(15))[::-1]]
+
+    # Remove leading 0s
+    while len(message) > 0 and message[0] == 0:
+        message.pop(0)
+    
+    generatorPolynomial = [1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1]
+
+    # Polynomial division
+    while len(message) >= 11:
+        nextMessage = []
+        currentGenerator = generatorPolynomial + [0]*max(0, len(message)-len(generatorPolynomial))
+        for i in range(len(message)):
+            nextMessage.append(message[i]^currentGenerator[i])
+        message = nextMessage
+        while len(message) > 0 and message[0] == 0:
+            message.pop(0)
+    
+    # Left padding with 0s if length less than 10
+    while len(message) < 10:
+        message.insert(0, 0)
+    
+    newString = [int(x) for x in string] + message
+    maskString = [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0]
+
+    answer = [newString[i] ^ maskString[i] for i in range(len(newString))]
+
+    return "".join(str(x) for x in answer)
+
+
+# Format information
+from information import ERROR_CORRECTION_BITS
+def format_information(matrix: List[List[int]], size: int, formatString: str):
+    idx = 0
+    for x in range(SEPARATOR):
+        if x == 6:
+            continue
+        matrix[SEPARATOR-1][x] = formatString[idx]
+        idx += 1
+    for y in range(SEPARATOR-2, -1, -1):
+        if y == 6:
+            continue
+        matrix[y][SEPARATOR-1] = formatString[idx]
+        idx += 1
+    idx = 0
+    for y in range(size-1, size-SEPARATOR+1, -1):
+        matrix[y][SEPARATOR-1] = formatString[idx]
+        idx += 1
+    for x in range(size-SEPARATOR+1, size):
+        matrix[SEPARATOR-1][x] = formatString[idx]
+        idx += 1
+    return matrix
+
+
+# Version information string
+def version_string(version: int) -> str:
+    string = bin(version)[2:].zfill(6)
+
+    message = [int(x) for x in (string[::-1].zfill(18))[::-1]]
+
+    # Remove leading 0s
+    while len(message) > 0 and message[0] == 0:
+        message.pop(0)
+    
+    generatorPolynomial = [1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1]
+
+    # Polynomial division
+    while len(message) >= 13:
+        nextMessage = []
+        currentGenerator = generatorPolynomial + [0]*max(0, len(message)-len(generatorPolynomial))
+        for i in range(len(message)):
+            nextMessage.append(message[i]^currentGenerator[i])
+        message = nextMessage
+        while len(message) > 0 and message[0] == 0:
+            message.pop(0)
+    
+    # Left padding with 0s if length less than 12
+    while len(message) < 12:
+        message.insert(0, 0)
+    
+    answer = [int(x) for x in string] + message
+    answer = answer[::-1]
+
+    return "".join(str(x) for x in answer)
+
+
+# Version information
+def version_information(matrix: List[List[int]], version: int, size: int, versionString: str) -> List[List[int]]:
+    if version < 7:
+        return matrix
+    idx = 0
+    for x in range(FINDER_OUTER-1):
+        for y in range(size-SEPARATOR, size-SEPARATOR-3, -1):
+            matrix[y][x] = versionString[idx]
+            idx += 1
+    idx = 0
+    for x in range(size-SEPARATOR-2, size-SEPARATOR+1):
+        for y in range(FINDER_OUTER-1):
+            matrix[y][x] = versionString[idx]
+            idx += 1
+    return matrix
+    
+
+if __name__ == "__main__":
+    for ecl in ["L", "M", "Q", "H"]:
+        for mask in range(8):
+            print(format_string(ecl, mask))
+    for version in range(7, 41):
+        print(version_string(version))
 

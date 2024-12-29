@@ -1,7 +1,18 @@
 from mask_evaluation import evaluate_mask
 from data_masking import masking
 from typing import List, Tuple
-from matrix_preamble import *
+from matrix_preamble_finishing import *
+
+
+# Determines size (side length) of QR code from version
+def matrix_size(version: int) -> int:
+    return (4*(version-1)+21)
+
+
+# Generates empty matrix of given size
+def empty_matrix(size: int) -> List[List[int]]:
+    m = [[-1 for j in range(size)] for i in range(size)]
+    return m
 
 
 # Add preamble patterns to matrix
@@ -9,10 +20,24 @@ def preamble(matrix: List[List[int]], version: int, size: int) -> List[List[int]
     matrix = finder_patterns(matrix, size)
     matrix = separators(matrix, size)
     matrix = alignment_patterns(matrix, version, size)
+    matrix = timing_patterns(matrix, size)
     matrix = format_information_area(matrix, size)
     matrix = version_information_area(matrix, version, size)
     matrix = dark_pixel(matrix, version)
-    matrix = timing_patterns(matrix, size)
+    return matrix
+
+
+from matrix_preamble_finishing import format_string
+from matrix_preamble_finishing import format_information
+from matrix_preamble_finishing import version_string
+from matrix_preamble_finishing import version_information
+
+# Add finishing patterns to matrix
+def finishing(matrix: List[List[int]], errorCorrectionLevel: str, mask: int, version: int, size: int) -> List[List[int]]:
+    formatString = format_string(errorCorrectionLevel, mask)
+    matrix = format_information(matrix, size, formatString)
+    versionString = version_string(version)
+    matrix = version_information(matrix, version, size, versionString)
     return matrix
 
 
@@ -96,6 +121,16 @@ def best_mask(matrix: List[List[int]], size: int, dataBits: str) -> List[List[in
         if currentScore < bestScore:
             bestMask = maskNumber
     matrix = data_bits(matrix, size, dataBits, bestMask)
+    return [matrix, bestMask]
+
+
+# Main function. Returns final matrix using other functions
+def matrix_generation(data: str, version: int, errorCorrectionLevel: str) -> List[List[int]]:
+    size = matrix_size(version)
+    matrix = empty_matrix(size)
+    matrix = preamble(matrix, version, size)
+    matrix, mask = best_mask(matrix, size, data)
+    matrix = finishing(matrix, errorCorrectionLevel, mask, version, size)
     return matrix
 
 
@@ -114,10 +149,10 @@ def print_matrix(matrix: List[List[int]]):
 # Testing
 if __name__ == "__main__":
     version = 5
-    size = size(version)
+    size = matrix_size(version)
     mat = empty_matrix(size)
     mat = preamble(mat, version, size)
     print_matrix(mat)
     data = "01000011111101101011011001000110010101011111011011100110111101110100011001000010111101110111011010000110000001110111011101010110010101110111011000110010110000100010011010000110000001110000011001010101111100100111011010010111110000100000011110000110001100100111011100100110010101110001000000110010010101100010011011101100000001100001011001010010000100010001001011000110000001101110110000000110110001111000011000010001011001111001001010010111111011000010011000000110001100100001000100000111111011001101010101010111100101001110101111000111110011000111010010011111000010110110000010110001000001010010110100111100110101001010110101110011110010100100110000011000111101111011011010000101100100111111000101111100010010110011101111011111100111011111001000100001111001011100100011101110011010101111100010000110010011000010100010011010000110111100001111111111011101011000000111100110101011001001101011010001101111010101001001101111000100010000101000000010010101101010001101101100100000111010000110100011111100000010000001101111011110001100000010110010001001111000010110001101111011000000000"
-    mat = best_mask(mat, size, data)
+    mat, mask = best_mask(mat, size, data)
     print_matrix(mat)

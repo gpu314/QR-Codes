@@ -87,7 +87,6 @@ def evaluate_mask(matrix: List[List[int]], size: int) -> int:
 
     # Overall penalty score
     penalty = penalty1 + penalty2 + penalty3 + penalty4
-    print(penalty1, penalty2, penalty3, penalty4)
     return penalty
 
 

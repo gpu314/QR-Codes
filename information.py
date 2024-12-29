@@ -378,3 +378,5 @@ ALIGNMENT_PATTERN_LOCATIONS = [
     [6, 26, 54, 82, 110, 138, 166],
     [6, 30, 58, 86, 114, 142, 170]
 ]
+
+ERROR_CORRECTION_BITS = {"L": "01", "M": "00", "Q": "11", "H": "10"}

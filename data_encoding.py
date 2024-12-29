@@ -1,6 +1,7 @@
 # Selects error correction level. Returns: L-7%, M-15%, Q-25%, H-30%
-def error_correction_level(text: str) -> str:
-    return 'M'
+def error_correction_level() -> str:
+    ecl = input("Error Correction Level: ")
+    return ecl
 
 
 # Determine smallest version neccessary for the data
@@ -119,6 +120,7 @@ from information import ERROR_CORRECTION
 from information import PAD_BYTES
 # Generate actual encoded data
 def data_encoding(text: str, encodingMode: int, errorCorrectionLevel: str, version: int) -> List[str]:
+
     textLength = len(text)
     
     totalBits = 8*ERROR_CORRECTION[version-1][errorCorrectionLevel][0]
