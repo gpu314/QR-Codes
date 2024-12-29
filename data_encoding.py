@@ -1,31 +1,37 @@
 # Selects error correction level. Returns: L-7%, M-15%, Q-25%, H-30%
+from information import PAD_BYTES
+from information import ERROR_CORRECTION
+from typing import List
+from information import ALPHANUMERIC
+from information import CHARACTER_COUNT_LENGTH
+from information import MODE_INDICATOR
+from information import SMALLEST_VERSION
+
+
 def error_correction_level() -> str:
     ecl = input("Error Correction Level: ")
     return ecl
 
 
 # Determine smallest version neccessary for the data
-from information import SMALLEST_VERSION
 def smallest_version(text: str, encodingMode: int, errorCorrectionLevel: str) -> int:
     textLength = len(text)
-    
+
     checkArray = SMALLEST_VERSION[encodingMode][errorCorrectionLevel]
 
     for i in range(len(checkArray)):
         if textLength <= checkArray[i]:
             return (i+1)
-    
+
     return -1
 
 
 # Generate mode indicator
-from information import MODE_INDICATOR
 def mode_indicator(encodingMode: int) -> str:
     return MODE_INDICATOR[encodingMode]
 
 
 # Generate character count indicator
-from information import CHARACTER_COUNT_LENGTH
 def character_count_indicator(textLength: int, encodingMode: int, version: int) -> str:
     idx = (0 if (1 <= version and version <= 9) else (1 if (10 <= version and version <= 26) else (2 if (27 <= version and version <= 40) else -1)))
 
@@ -46,7 +52,6 @@ def encode_numeric_mode(text: str, textLength: int) -> str:
 
 
 # Alphanumeric mode encoding
-from information import ALPHANUMERIC
 def encode_alphanumeric_mode(text: str, textLength: int) -> str:
     encoded = ""
     i = 0
@@ -105,7 +110,6 @@ def encode_text(text: str, textLength: int, encodingMode: int) -> str:
     return ""
 
 
-from typing import List
 # Converts encoded string to list of 8 bit elements
 def encoded_to_list(encoded: str) -> List[str]:
     encodedList = []
@@ -116,13 +120,11 @@ def encoded_to_list(encoded: str) -> List[str]:
     return encodedList
 
 
-from information import ERROR_CORRECTION
-from information import PAD_BYTES
 # Generate actual encoded data
 def data_encoding(text: str, encodingMode: int, errorCorrectionLevel: str, version: int) -> List[str]:
 
     textLength = len(text)
-    
+
     totalBits = 8*ERROR_CORRECTION[version-1][errorCorrectionLevel][0]
 
     modeIndicator = mode_indicator(encodingMode)
@@ -132,28 +134,14 @@ def data_encoding(text: str, encodingMode: int, errorCorrectionLevel: str, versi
 
     if len(encoded) >= totalBits:
         return encoded[:totalBits]
-    
-    encoded += ("0"*(0 if (len(encoded)%8 == 0) else (8-len(encoded)%8)))
+
+    encoded += ("0"*(0 if (len(encoded) % 8 == 0) else (8-len(encoded) % 8)))
 
     switch = 0
     while len(encoded) < totalBits:
         encoded += PAD_BYTES[switch]
         switch = not switch
-    
+
     encodedList = encoded_to_list(encoded)
 
     return encodedList
-
-
-from data_analysis import encoding_mode
-if __name__ == "__main__":
-    # n = int(input())
-    # for i in range(n):
-        text = input()
-        encodingMode = encoding_mode(text)
-        errorCorrectionLevel = error_correction_level(text)
-        version = smallest_version(text, encodingMode, errorCorrectionLevel)
-        
-        print(data_encoding(text, encodingMode, errorCorrectionLevel, version))
-
-

@@ -1,10 +1,13 @@
+from information import ERROR_CORRECTION_BITS
+from information import ALIGNMENT_PATTERN_LOCATIONS
 from typing import List
 
 
 # Go through border and change
 def border(matrix: List[List[int]], size: int, topLeftX: int, topLeftY: int, newVal: int, borderSize: int) -> List[List[int]]:
     for i in range(borderSize):
-        cells = [(topLeftX+i, topLeftY), (topLeftX+borderSize-1, topLeftY+i), (topLeftX+borderSize-1-i, topLeftY+borderSize-1), (topLeftX, topLeftY+borderSize-1-i)]
+        cells = [(topLeftX+i, topLeftY), (topLeftX+borderSize-1, topLeftY+i), (topLeftX +
+                                                                               borderSize-1-i, topLeftY+borderSize-1), (topLeftX, topLeftY+borderSize-1-i)]
         for c in cells:
             if c[0] < 0 or c[1] < 0 or c[0] >= size or c[1] >= size:
                 continue
@@ -19,9 +22,9 @@ FINDER_INNER1 = 3
 FINDER_INNER2 = 1
 def finder_pattern(matrix: List[List[int]], size: int, topLeftX: int, topLeftY: int) -> List[List[int]]:
     matrix = border(matrix, size, topLeftX, topLeftY, 1, FINDER_OUTER)
-    matrix = border(matrix, size, topLeftX+(FINDER_OUTER-FINDER_MIDDLE)//2, topLeftY+(FINDER_OUTER-FINDER_MIDDLE)//2, 0, FINDER_MIDDLE)
-    matrix = border(matrix, size, topLeftX+(FINDER_OUTER-FINDER_INNER1)//2, topLeftY+(FINDER_OUTER-FINDER_INNER1)//2, 1, FINDER_INNER1)
-    matrix = border(matrix, size, topLeftX+(FINDER_OUTER-FINDER_INNER2)//2, topLeftY+(FINDER_OUTER-FINDER_INNER2)//2, 1, FINDER_INNER2)
+    matrix = border(matrix, size, topLeftX + (FINDER_OUTER-FINDER_MIDDLE) // 2, topLeftY + (FINDER_OUTER-FINDER_MIDDLE) // 2, 0, FINDER_MIDDLE)
+    matrix = border(matrix, size, topLeftX + (FINDER_OUTER-FINDER_INNER1) // 2, topLeftY + (FINDER_OUTER-FINDER_INNER1) // 2, 1, FINDER_INNER1)
+    matrix = border(matrix, size, topLeftX + (FINDER_OUTER-FINDER_INNER2) // 2, topLeftY + (FINDER_OUTER-FINDER_INNER2) // 2, 1, FINDER_INNER2)
     return matrix
 
 
@@ -53,7 +56,6 @@ def isEmpty(matrix: List[List[int]], size: int, topLeftX: int, topLeftY: int, pa
     return True
 
 
-from information import ALIGNMENT_PATTERN_LOCATIONS
 # Add alignment patterns
 ALIGNMENT_OUTER = 5
 ALIGNMENT_MIDDLE = 3
@@ -63,18 +65,18 @@ def alignment_patterns(matrix: List[List[int]], version: int, size: int) -> List
     centers = [(x, y) for x in alignmentLocations for y in alignmentLocations]
     for center in centers:
         if isEmpty(matrix, size, center[0]-ALIGNMENT_OUTER//2, center[1]-ALIGNMENT_OUTER//2, ALIGNMENT_OUTER):
-            matrix = border(matrix, size, center[0]-ALIGNMENT_OUTER//2, center[1]-ALIGNMENT_OUTER//2, 1, ALIGNMENT_OUTER)
-            matrix = border(matrix, size, center[0]-ALIGNMENT_MIDDLE//2, center[1]-ALIGNMENT_MIDDLE//2, 0, ALIGNMENT_MIDDLE)
-            matrix = border(matrix, size, center[0]-ALIGNMENT_INNER//2, center[1]-ALIGNMENT_INNER//2, 1, ALIGNMENT_INNER)
+            matrix = border(matrix, size, center[0] - ALIGNMENT_OUTER // 2, center[1] - ALIGNMENT_OUTER // 2, 1, ALIGNMENT_OUTER)
+            matrix = border(matrix, size, center[0] - ALIGNMENT_MIDDLE // 2, center[1] - ALIGNMENT_MIDDLE // 2, 0, ALIGNMENT_MIDDLE)
+            matrix = border(matrix, size, center[0] - ALIGNMENT_INNER // 2, center[1] - ALIGNMENT_INNER // 2, 1, ALIGNMENT_INNER)
     return matrix
 
 
 # Add timing patterns
 def timing_patterns(matrix: List[List[int]], size: int) -> List[List[int]]:
     for x in range(FINDER_OUTER, size-FINDER_OUTER-1):
-        matrix[FINDER_OUTER-1][x] = (1 if x%2 == 0 else 0)
+        matrix[FINDER_OUTER-1][x] = (1 if x % 2 == 0 else 0)
     for y in range(FINDER_OUTER, size-FINDER_OUTER-1):
-        matrix[y][FINDER_OUTER-1] = (1 if y%2 == 0 else 0)
+        matrix[y][FINDER_OUTER-1] = (1 if y % 2 == 0 else 0)
     return matrix
 
 
@@ -116,30 +118,32 @@ def version_information_area(matrix: List[List[int]], version: int, size: int) -
 
 # Format information string
 def format_string(errorCorrectionLevel: str, mask: int) -> str:
-    string = ERROR_CORRECTION_BITS[errorCorrectionLevel] + bin(mask)[2:].zfill(3)
+    string = ERROR_CORRECTION_BITS[errorCorrectionLevel] + \
+        bin(mask)[2:].zfill(3)
 
     message = [int(x) for x in (string[::-1].zfill(15))[::-1]]
 
     # Remove leading 0s
     while len(message) > 0 and message[0] == 0:
         message.pop(0)
-    
+
     generatorPolynomial = [1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1]
 
     # Polynomial division
     while len(message) >= 11:
         nextMessage = []
-        currentGenerator = generatorPolynomial + [0]*max(0, len(message)-len(generatorPolynomial))
+        currentGenerator = generatorPolynomial + \
+            [0]*max(0, len(message)-len(generatorPolynomial))
         for i in range(len(message)):
-            nextMessage.append(message[i]^currentGenerator[i])
+            nextMessage.append(message[i] ^ currentGenerator[i])
         message = nextMessage
         while len(message) > 0 and message[0] == 0:
             message.pop(0)
-    
+
     # Left padding with 0s if length less than 10
     while len(message) < 10:
         message.insert(0, 0)
-    
+
     newString = [int(x) for x in string] + message
     maskString = [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0]
 
@@ -149,7 +153,6 @@ def format_string(errorCorrectionLevel: str, mask: int) -> str:
 
 
 # Format information
-from information import ERROR_CORRECTION_BITS
 def format_information(matrix: List[List[int]], size: int, formatString: str):
     idx = 0
     for x in range(SEPARATOR):
@@ -181,23 +184,24 @@ def version_string(version: int) -> str:
     # Remove leading 0s
     while len(message) > 0 and message[0] == 0:
         message.pop(0)
-    
+
     generatorPolynomial = [1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1]
 
     # Polynomial division
     while len(message) >= 13:
         nextMessage = []
-        currentGenerator = generatorPolynomial + [0]*max(0, len(message)-len(generatorPolynomial))
+        currentGenerator = generatorPolynomial + \
+            [0]*max(0, len(message)-len(generatorPolynomial))
         for i in range(len(message)):
-            nextMessage.append(message[i]^currentGenerator[i])
+            nextMessage.append(message[i] ^ currentGenerator[i])
         message = nextMessage
         while len(message) > 0 and message[0] == 0:
             message.pop(0)
-    
+
     # Left padding with 0s if length less than 12
     while len(message) < 12:
         message.insert(0, 0)
-    
+
     answer = [int(x) for x in string] + message
     answer = answer[::-1]
 
@@ -219,12 +223,3 @@ def version_information(matrix: List[List[int]], version: int, size: int, versio
             matrix[y][x] = versionString[idx]
             idx += 1
     return matrix
-    
-
-if __name__ == "__main__":
-    for ecl in ["L", "M", "Q", "H"]:
-        for mask in range(8):
-            print(format_string(ecl, mask))
-    for version in range(7, 41):
-        print(version_string(version))
-

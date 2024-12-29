@@ -1,4 +1,5 @@
 # Reed–Solomon error correction
+from information import REMAINDER_BITS
 from information import ERROR_CORRECTION
 from typing import List
 from information import LOG
@@ -83,7 +84,7 @@ def polynomial_addition(p1: List[int], p2: List[int]):
 
     while len(sum) > 0 and sum[0] == 0:
         sum.pop(0)
-    
+
     result = [log(x) for x in sum]
     return result
 
@@ -132,14 +133,14 @@ def interleave(toInterleave: List[List[List[int]]]) -> List[int]:
         for block in group:
             blocks.append(block)
             maxLength = max(maxLength, len(block))
-    
+
     interleaved = []
     for i in range(maxLength):
         for block in blocks:
             if i >= len(block):
                 continue
             interleaved.append(block[i])
-    
+
     return interleaved
 
 
@@ -165,13 +166,13 @@ def error_correction_coding(blockedCodewordsConverted: List[List[List[int]]], ve
         errorCorrection.append(errorCorrectionGroup)
     return errorCorrection
 
-from information import REMAINDER_BITS
+
 # Main function. Combines codewords / error correction coding and adds remainder bits as necessary
 def final_message(codewords: List[str], version: int, errorCorrectionLevel: str):
     blockedCodewords = blocking(codewords, version, errorCorrectionLevel)
     blockedCodewordsConverted = blocked_codewords_convert(blockedCodewords)
     errorCorrectionCodes = error_correction_coding(blockedCodewordsConverted, version, errorCorrectionLevel)
-    
+
     interleavedCodewords = interleave(blockedCodewordsConverted)
     interleavedErrorCorrection = interleave(errorCorrectionCodes)
 
@@ -179,10 +180,3 @@ def final_message(codewords: List[str], version: int, errorCorrectionLevel: str)
     answer = "".join([bin(x)[2:].zfill(bits) for x in interleavedCodewords]) + "".join([bin(x)[2:].zfill(bits) for x in interleavedErrorCorrection]) + "0"*REMAINDER_BITS[version-1]
 
     return answer
-            
-    
-if __name__ == "__main__":
-    p = ["01000011","01010101","01000110","10000110","01010111","00100110","01010101","11000010","01110111","00110010","00000110","00010010","00000110","01100111","00100110","11110110","11110110","01000010","00000111","01110110","10000110","11110010","00000111","00100110","01010110","00010110","11000110","11000111","10010010","00000110","10110110","11100110","11110111","01110111","00110010","00000111","01110110","10000110","01010111","00100110","01010010","00000110","10000110","10010111","00110010","00000111","01000110","11110111","01110110","01010110","11000010","00000110","10010111","00110010","00010000","11101100","00010001","11101100","00010001","11101100","00010001","11101100"]
-    print(final_message(p, 5, 'Q'))
-    print()
-    q = ["01000011","01010101","01000110","10000110","01010111","00100110","01010101","11000010","01110111","00110010","00000110","00010010","00000110","01100111","00100110","11110110","11110110","01000010","00000111","01110110","10000110","11110010","00000111","00100110","01010110","00010110","11000110","11000111","10010010","00000110","10110110","11100110","11110111","01110111","00110010","00000111","01110110","10000110","01010111","00100110","01010010","00000110","10000110","10010111","00110010","00000111","01000110","11110111","01110110","01010110","11000010","00000110","10010111","00110010","11100000","11101100","00010001","11101100","00010001","11101100","00010001","11101100"]

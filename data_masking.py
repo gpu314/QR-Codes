@@ -17,4 +17,3 @@ def masking(maskNumber: int, bit: int, row: int, column: int) -> int:
     elif maskNumber == 7 and (((row + column) % 2) + ((row * column) % 3)) % 2 == 0:
         return 1 - bit
     return bit
-

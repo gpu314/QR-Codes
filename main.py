@@ -26,7 +26,7 @@ def display_matrix(matrix: List[List[int]]):
     print()
 
 
-if __name__ == "__main__":
+def main():
     text = input("Text: ")
     mode = encoding_mode(text)
     errorCorrectionLevel = error_correction_level()
@@ -35,3 +35,7 @@ if __name__ == "__main__":
     dataBits = final_message(encodedList, version, errorCorrectionLevel)
     matrix = matrix_generation(dataBits, version, errorCorrectionLevel)
     display_matrix(matrix)
+
+
+if __name__ == "__main__":
+    main()
