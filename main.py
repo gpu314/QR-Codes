@@ -67,21 +67,34 @@ def main_text(text, errorCorrectionLevel) -> List[str]:
     return return_matrix(matrix)
 
 
-# PNG QR code, returns -1 if unsuccessful and 0 if successful
 from PIL import Image
-def main_png(text, errorCorrectionLevel, fileName) -> int:
+# PNG QR code, returns -1 if unsuccessful and fileName if successful
+def main_png(text, errorCorrectionLevel, fileName) -> str:
     matrix = qr_code_encoding(text, errorCorrectionLevel)
     try:
         size = len(matrix)
-        img = Image.new('1', (size, size), color=1)
+        pixel = 256 // size
+        img = Image.new('1', (pixel*size, pixel*size), color=1)
         pixels = img.load()
         for y in range(size):
             for x in range(size):
-                pixels[x, y] = 1-matrix[y][x]
+                for dy in range(pixel):
+                    for dx in range(pixel):
+                        pixels[x*pixel+dx, y*pixel+dy] = 1-matrix[y][x]
         img.save(fileName+".png")
-        return 0
+        return fileName+".png"
     except:
         return -1
+
+
+import base64
+# PNG QR Code encoded in base 64
+def main_png_base64(text, errorCorrectionLevel, fileName) -> str:
+    fileName = main_png(text, errorCorrectionLevel, fileName)
+    if fileName == -1:
+        return -1
+    with open(fileName, "rb") as file:
+        return base64.b64encode(file.read()).decode("utf-8")
 
 
 if __name__ == "__main__":
