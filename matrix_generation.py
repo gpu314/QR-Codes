@@ -40,6 +40,19 @@ def finishing(matrix: List[List[int]], errorCorrectionLevel: str, mask: int, ver
     return matrix
 
 
+# Add 4 blocks of quiet zone
+QUIET_ZONE = 4
+def quietzone(matrix: List[List[int]], size: int) -> List[List[int]]:
+    newMatrix = []
+    for i in range(QUIET_ZONE):
+        newMatrix.append([0]*(QUIET_ZONE+size+QUIET_ZONE))
+    for i in range(size):
+        newMatrix.append([0]*QUIET_ZONE+matrix[i]+[0]*QUIET_ZONE)
+    for i in range(QUIET_ZONE):
+        newMatrix.append([0]*(QUIET_ZONE+size+QUIET_ZONE))
+    return newMatrix
+    
+
 # Next data bit to place data at
 def next_data_bit(matrix: List[List[int]], size: int, xydv: Tuple[int]) -> Tuple[int]:
     # Convert coordinates for easier math handling
@@ -130,6 +143,7 @@ def matrix_generation(data: str, version: int, errorCorrectionLevel: str) -> Lis
     matrix = preamble(matrix, version, size)
     matrix, mask = best_mask(matrix, size, data)
     matrix = finishing(matrix, errorCorrectionLevel, mask, version, size)
+    matrix = quietzone(matrix, size)
     return matrix
 
 

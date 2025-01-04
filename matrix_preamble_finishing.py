@@ -158,19 +158,19 @@ def format_information(matrix: List[List[int]], size: int, formatString: str):
     for x in range(SEPARATOR):
         if x == 6:
             continue
-        matrix[SEPARATOR-1][x] = formatString[idx]
+        matrix[SEPARATOR-1][x] = int(formatString[idx])
         idx += 1
     for y in range(SEPARATOR-2, -1, -1):
         if y == 6:
             continue
-        matrix[y][SEPARATOR-1] = formatString[idx]
+        matrix[y][SEPARATOR-1] = int(formatString[idx])
         idx += 1
     idx = 0
     for y in range(size-1, size-SEPARATOR+1, -1):
-        matrix[y][SEPARATOR-1] = formatString[idx]
+        matrix[y][SEPARATOR-1] = int(formatString[idx])
         idx += 1
     for x in range(size-SEPARATOR+1, size):
-        matrix[SEPARATOR-1][x] = formatString[idx]
+        matrix[SEPARATOR-1][x] = int(formatString[idx])
         idx += 1
     return matrix
 
@@ -215,11 +215,11 @@ def version_information(matrix: List[List[int]], version: int, size: int, versio
     idx = 0
     for x in range(FINDER_OUTER-1):
         for y in range(size-SEPARATOR, size-SEPARATOR-3, -1):
-            matrix[y][x] = versionString[idx]
+            matrix[y][x] = int(versionString[idx])
             idx += 1
     idx = 0
     for x in range(size-SEPARATOR-2, size-SEPARATOR+1):
         for y in range(FINDER_OUTER-1):
-            matrix[y][x] = versionString[idx]
+            matrix[y][x] = int(versionString[idx])
             idx += 1
     return matrix
